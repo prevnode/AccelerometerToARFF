@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AccelerometerToArff</string>
+    <string name="accel_label">Accelerometer</string>
+    <string name="action_settings">Settings</string>
+    <string name="local_service_started">StartedCapture</string>
+    <string name="local_service_stopped">EndedCapture</string>
+    <string name="local_service_label">accel</string>
+    <string name="local_service_connected">connected</string>
+    <string name="local_service_disconnected">disconnected</string>
+
+
+</resources>
