@@ -42,6 +42,7 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         mButton =(Button)findViewById(R.id.toggleButton);
         mButton.setText("Start");
         mAccelText = (TextView)findViewById(R.id.accelView);
+        mEvents = new LinkedList<SensorEvent>();
 
         doBindService();
 
@@ -61,14 +62,17 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         if(!isExternalStorageWritable() )
             return;
 
-        File file = new File(Environment.DIRECTORY_DOCUMENTS, "accelARFF");
+        File file = new File(Environment.DIRECTORY_DOCUMENTS, "accelARFF.arff");
 
         try {
             FileWriter fileWriter = new FileWriter(file);
-
+            fileWriter.write(R.string.arff_header);
         }catch (IOException e){
             Log.d(TAG, e.toString() );
+            return;
         }
+
+
 
 
     }
@@ -128,8 +132,10 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             return;
         }
 
-        if(mRecording)
+        if(mRecording) {
             mButton.setText("Start");
+            writeHeader();
+        }
         else
             mButton.setText("Stop");
 
