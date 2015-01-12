@@ -18,6 +18,10 @@ import android.widget.Button;
 import android.content.ServiceConnection;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 
 
@@ -52,9 +56,26 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         return false;
     }
 
+    private void writeHeader(){
+
+        if(!isExternalStorageWritable() )
+            return;
+
+        File file = new File(Environment.DIRECTORY_DOCUMENTS, "accelARFF");
+
+        try {
+            FileWriter fileWriter = new FileWriter(file);
+
+        }catch (IOException e){
+            Log.d(TAG, e.toString() );
+        }
+
+
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event){
-        //mEvents.push(event);
+
         if(!mRecording)
             return;
 
