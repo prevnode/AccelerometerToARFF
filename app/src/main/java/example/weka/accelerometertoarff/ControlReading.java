@@ -59,8 +59,10 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
 
     private void writeHeader(){
 
-        if(!isExternalStorageWritable() )
+        if(!isExternalStorageWritable() ) {
+            Log.d(TAG, "Can't write");
             return;
+        }
 
         File file = new File(Environment.DIRECTORY_DOCUMENTS, "accelARFF.arff");
 
@@ -71,9 +73,6 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             Log.d(TAG, e.toString() );
             return;
         }
-
-
-
 
     }
 
