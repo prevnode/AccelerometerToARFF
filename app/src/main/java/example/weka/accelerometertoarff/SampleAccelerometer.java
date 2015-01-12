@@ -25,7 +25,11 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
 
     private SensorManager mSensorManager;
     private Sensor mSensor;
-    private ControlReading mControl;
+    private SensorEventListener mClientListener;
+    private boolean mActive;
+
+    //Used for filtering accelerometer data
+    final float alpha = 0.8f;
 
     float[] gravity = new float[3];
     float[] linear_acceleration = new float[3];
@@ -43,6 +47,10 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
         SampleAccelerometer getService() {
             return SampleAccelerometer.this;
         }
+    }
+
+    public void registerAccelListener(SensorEventListener sensorListener){
+        mClientListener = sensorListener;
     }
 
     private void getSensor(){
@@ -65,13 +73,13 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
 
     @Override
     public void onSensorChanged(SensorEvent event){
+
+        if(!mActive)
+            return;
+
         // In this example, alpha is calculated as t / (t + dT),
         // where t is the low-pass filter's time-constant and
         // dT is the event delivery rate.
-
-
-
-        final float alpha = 0.8f;
 
         // Isolate the force of gravity with the low-pass filter.
         gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
@@ -82,10 +90,22 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
         linear_acceleration[0] = event.values[0] - gravity[0];
         linear_acceleration[1] = event.values[1] - gravity[1];
         linear_acceleration[2] = event.values[2] - gravity[2];
+
+        //Replace the original values with the cleaned up ones and pass them on
+        event.values[0] = linear_acceleration[0];
+        event.values[1] = linear_acceleration[1];
+        event.values[2] = linear_acceleration[2];
+
+        if(mClientListener != null)
+            mClientListener.onSensorChanged(event);
     }
 
     public float[] getAccel(){
         return linear_acceleration;
+    }
+
+    public void setActive(boolean active){
+        mActive = active;
     }
 
 

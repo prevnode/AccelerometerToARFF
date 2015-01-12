@@ -3,6 +3,9 @@ package example.weka.accelerometertoarff;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -14,16 +17,18 @@ import android.widget.Button;
 import android.content.ServiceConnection;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.LinkedList;
 
 
-public class ControlReading extends ActionBarActivity {
+public class ControlReading extends ActionBarActivity implements SensorEventListener {
 
-    private boolean recording;
+    private boolean mRecording;
 
     private Button mButton;
     private TextView mAccelText;
     private boolean mIsBound;
     private static final String TAG = "ControlReading";
+    private LinkedList<SensorEvent> mEvents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,20 @@ public class ControlReading extends ActionBarActivity {
         mAccelText = (TextView)findViewById(R.id.accelView);
 
         doBindService();
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event){
+        //mEvents.push(event);
+        if(!mRecording)
+            return;
+
+        mAccelText.setText("x: " + event.values[0] + " y: " + event.values[1] + " z: " + event.values[2]);
+
+    }
+
+    public void onAccuracyChanged(Sensor sensor, int acc){
 
     }
 
@@ -61,7 +80,7 @@ public class ControlReading extends ActionBarActivity {
     }
 
     /**
-     * Start/Stop recording accelerometer readings
+     * Start/Stop mRecording accelerometer readings
      */
     public void toggleRecord(View view){
 
@@ -70,21 +89,13 @@ public class ControlReading extends ActionBarActivity {
             return;
         }
 
-
-        if(recording)
+        if(mRecording)
             mButton.setText("Start");
-        else {
+        else
             mButton.setText("Stop");
-            if(mBoundService != null){
-                float[] accel = mBoundService.getAccel();
-                mAccelText.append("x: " + accel[0] + " y: " + accel[1] + " z: " + accel[2]);
-            }
-        }
 
-        recording = !recording;
-
-
-
+        mRecording = !mRecording;
+        mBoundService.setActive(mRecording);
     }
 
     private SampleAccelerometer mBoundService;
@@ -101,6 +112,8 @@ public class ControlReading extends ActionBarActivity {
             // Tell the user about this for our demo.
             Toast.makeText(ControlReading.this, R.string.local_service_connected,
                     Toast.LENGTH_SHORT).show();
+
+            mBoundService.registerAccelListener(ControlReading.this);
         }
 
         public void onServiceDisconnected(ComponentName className) {
