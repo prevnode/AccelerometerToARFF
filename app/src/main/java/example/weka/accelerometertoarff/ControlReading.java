@@ -48,7 +48,15 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         if(!mRecording)
             return;
 
-        mAccelText.setText("x: " + event.values[0] + " y: " + event.values[1] + " z: " + event.values[2]);
+        mAccelText.setText("x: " + event.values[0] + " y: " + event.values[1] +
+                           " z: " + event.values[2]);
+
+        if(mEvents.size() <= 100)
+            mEvents.push(event);
+        else
+        {
+            toggleRecord(null);
+        }
 
     }
 
