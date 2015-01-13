@@ -1,16 +1,36 @@
 package example.weka.accelerometertoarff;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.UserHandle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.View;
 import android.view.MenuItem;
@@ -20,8 +40,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.LinkedList;
 
 
@@ -34,6 +60,7 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
     private boolean mIsBound;
     private static final String TAG = "ControlReading";
     private LinkedList<SensorEvent> mEvents;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +86,18 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
 
     private void writeHeader(){
 
-        if(!isExternalStorageWritable() ) {
-            Log.d(TAG, "Can't write");
-            return;
-        }
+        //File file = new File(ControlReading.this.getFilesDir(), "accelARFF.arff");
 
-        File file = new File(Environment.DIRECTORY_DOCUMENTS, "accelARFF.arff");
 
         try {
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(R.string.arff_header);
+            FileOutputStream outputStream;
+
+            outputStream = openFileOutput("accelARFF.arff", Context.MODE_WORLD_READABLE);
+            outputStream.write(getString(R.string.arff_header).getBytes());
+            outputStream.close();
+            Toast.makeText(getBaseContext(),"file saved",
+                    Toast.LENGTH_SHORT).show();
+
         }catch (IOException e){
             Log.d(TAG, e.toString() );
             return;
