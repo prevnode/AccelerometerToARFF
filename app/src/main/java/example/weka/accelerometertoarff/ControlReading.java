@@ -53,7 +53,7 @@ import java.io.OutputStreamWriter;
 import java.util.LinkedList;
 
 
-public class ControlReading extends ActionBarActivity implements SensorEventListener {
+public class ControlReading extends ActionBarActivity {
 
     private boolean mRecording;
 
@@ -61,7 +61,6 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
     private TextView mAccelText;
     private boolean mIsBound;
     private static final String TAG = "ControlReading";
-    private LinkedList<SensorEvent> mEvents;
 
 
     @Override
@@ -71,7 +70,6 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         mButton =(Button)findViewById(R.id.toggleButton);
         mButton.setText("Start");
         mAccelText = (TextView)findViewById(R.id.accelView);
-        mEvents = new LinkedList<SensorEvent>();
 
         doBindService();
 
@@ -151,29 +149,6 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event){
-
-        if(!mRecording)
-            return;
-
-        mAccelText.setText("x: " + event.values[0] + " y: " + event.values[1] +
-                           " z: " + event.values[2]);
-
-        if(mEvents.size() <= 100)
-            mEvents.push(event);
-        else
-        {
-            toggleRecord(null);
-        }
-
-    }
-
-    public void onAccuracyChanged(Sensor sensor, int acc){
-
-    }
-
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_control_reading, menu);
@@ -230,8 +205,6 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             // Tell the user about this for our demo.
             Toast.makeText(ControlReading.this, R.string.local_service_connected,
                     Toast.LENGTH_SHORT).show();
-
-            mBoundService.registerAccelListener(ControlReading.this);
         }
 
         public void onServiceDisconnected(ComponentName className) {
