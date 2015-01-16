@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -100,6 +101,17 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         return file;
     }
 
+    private void scanDataFile(File file) {
+        MediaScannerConnection.scanFile(this,
+                new String[]{file.toString()}, null,
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                        Log.i("ExternalStorage", "Scanned " + path + ":");
+                        Log.i("ExternalStorage", "-> uri=" + uri);
+                    }
+                });
+    }
+
     private void writeHeader(){
         if(!isExternalStorageWritable()){
             Log.e(TAG, "External Storage unavailable");
@@ -129,6 +141,7 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             outputStream.write(testString.getBytes(),0,testString.getBytes().length); //getString(R.string.arff_header)
             Log.d(TAG, "writing:" + testString);
             outputStream.close();
+            scanDataFile(file);
             Toast.makeText(getBaseContext(),"file saved",
                     Toast.LENGTH_SHORT).show();
 
