@@ -39,6 +39,7 @@ import android.content.ServiceConnection;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.FileInputStream;
@@ -84,22 +85,55 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         return false;
     }
 
-    private void writeHeader(){
+    public File getDocumentsDir(String dataDirName) {
+        // Get the directory for the user's public pictures directory.
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), dataDirName);
+        if(file.exists()) {
+            Log.e(TAG, "Directory exists");
+            return file;
+        }
 
-        //File file = new File(ControlReading.this.getFilesDir(), "accelARFF.arff");
+        if (!file.mkdirs()) {
+            Log.e(TAG, "Directory not created");
+        }
+        return file;
+    }
+
+    private void writeHeader(){
+        if(!isExternalStorageWritable()){
+            Log.e(TAG, "External Storage unavailable");
+            return;
+        }
+
 
 
         try {
             FileOutputStream outputStream;
+            String testString = "HelloWorld";
 
-            outputStream = openFileOutput("accelARFF.arff", Context.MODE_WORLD_READABLE);
-            outputStream.write(getString(R.string.arff_header).getBytes());
+            File dir = getDocumentsDir("arff");
+            File file = new File(dir,"accel.arff");
+            if( file.exists() ){
+                Log.d(TAG, "accel exists");
+            }
+            else{
+                file.createNewFile();
+                Log.d(TAG, "accel created");
+            }
+            outputStream =  new FileOutputStream(file); //openFileOutput("accelARFF", Context.MODE_WORLD_READABLE);
+            if(outputStream == null)
+                throw new IOException("wtf");
+
+
+            outputStream.write(testString.getBytes(),0,testString.getBytes().length); //getString(R.string.arff_header)
+            Log.d(TAG, "writing:" + testString);
             outputStream.close();
             Toast.makeText(getBaseContext(),"file saved",
                     Toast.LENGTH_SHORT).show();
 
-        }catch (IOException e){
-            Log.d(TAG, e.toString() );
+        }catch (Exception e){
+            Log.e(TAG, e.toString() );
             return;
         }
 
