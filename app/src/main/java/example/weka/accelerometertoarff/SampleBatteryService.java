@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -16,10 +17,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 
-public class SampleBatteryService extends Service {
+public class SampleBatteryService extends Service{
     public SampleBatteryService() {
     }
 
+    private BatteryReceiver battReceiver;
     private static final String TAG = "BatterySampleService";
     private NotificationManager mNM;
 
@@ -50,6 +52,7 @@ public class SampleBatteryService extends Service {
 
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
+        //battReceiver = new BatteryReceiver();
     }
 
     @Override

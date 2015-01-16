@@ -191,7 +191,7 @@ public class ControlReading extends ActionBarActivity {
         mBoundService.setActive(mRecording);
     }
 
-    private SampleAccelerometer mBoundService;
+    private SampleBatteryService mBoundService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -200,7 +200,7 @@ public class ControlReading extends ActionBarActivity {
             // interact with the service.  Because we have bound to a explicit
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((SampleAccelerometer.LocalBinder)service).getService();
+            mBoundService = ((SampleBatteryService.LocalBinder)service).getService();
 
             // Tell the user about this for our demo.
             Toast.makeText(ControlReading.this, R.string.local_service_connected,
