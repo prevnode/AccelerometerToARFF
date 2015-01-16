@@ -118,10 +118,8 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             return;
         }
 
-
-
         try {
-            FileOutputStream outputStream;
+            FileWriter outputStream;
             String testString = "HelloWorld";
 
             File dir = getDocumentsDir("arff");
@@ -133,12 +131,12 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
                 file.createNewFile();
                 Log.d(TAG, "accel created");
             }
-            outputStream =  new FileOutputStream(file); //openFileOutput("accelARFF", Context.MODE_WORLD_READABLE);
+            outputStream =  new FileWriter(file); //openFileOutput("accelARFF", Context.MODE_WORLD_READABLE);
             if(outputStream == null)
                 throw new IOException("wtf");
 
 
-            outputStream.write(testString.getBytes(),0,testString.getBytes().length); //getString(R.string.arff_header)
+            outputStream.write(getString(R.string.arff_header));
             Log.d(TAG, "writing:" + testString);
             outputStream.close();
             scanDataFile(file);
