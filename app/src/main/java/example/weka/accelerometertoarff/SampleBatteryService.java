@@ -1,38 +1,29 @@
 package example.weka.accelerometertoarff;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.os.IBinder;
+import android.hardware.SensorManager;
 import android.os.Binder;
-import android.app.NotificationManager;
+import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
-import android.app.Notification;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.content.Context;
 
 
-public class SampleAccelerometer extends Service implements SensorEventListener {
-    public SampleAccelerometer() {
+public class SampleBatteryService extends Service {
+    public SampleBatteryService() {
     }
 
-    private static final String TAG = "ControlReading";
+    private static final String TAG = "BatterySampleService";
     private NotificationManager mNM;
 
-    private SensorManager mSensorManager;
-    private Sensor mSensor;
-    private SensorEventListener mClientListener;
     private boolean mActive;
-
-    //Used for filtering accelerometer data
-    final float alpha = 0.8f;
-
-    float[] gravity = new float[3];
-    float[] linear_acceleration = new float[3];
 
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
@@ -44,68 +35,14 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
      * IPC.
      */
     public class LocalBinder extends Binder {
-        SampleAccelerometer getService() {
-            return SampleAccelerometer.this;
+        SampleBatteryService getService() {
+            return SampleBatteryService.this;
         }
     }
 
-    public void registerAccelListener(SensorEventListener sensorListener){
-        mClientListener = sensorListener;
+    public void setActive(boolean active){
+        mActive = active;
     }
-
-    private void getSensor(){
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-
-        // Use the accelerometer.
-        if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){
-            mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            mSensorManager.registerListener(this,mSensor,SensorManager.SENSOR_DELAY_FASTEST);
-        }
-        else{
-            Log.e(TAG,"Cant find accel");
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy){
-
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event){
-
-        if(!mActive)
-            return;
-
-        // In this example, alpha is calculated as t / (t + dT),
-        // where t is the low-pass filter's time-constant and
-        // dT is the event delivery rate.
-
-        // Isolate the force of gravity with the low-pass filter.
-        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
-        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
-        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
-
-        // Remove the gravity contribution with the high-pass filter.
-        linear_acceleration[0] = event.values[0] - gravity[0];
-        linear_acceleration[1] = event.values[1] - gravity[1];
-        linear_acceleration[2] = event.values[2] - gravity[2];
-
-        //Replace the original values with the cleaned up ones and pass them on
-        event.values[0] = linear_acceleration[0];
-        event.values[1] = linear_acceleration[1];
-        event.values[2] = linear_acceleration[2];
-
-        if(mClientListener != null)
-            mClientListener.onSensorChanged(event);
-    }
-
-    public float[] getAccel(){
-        return linear_acceleration;
-    }
-
-
-
 
     @Override
     public void onCreate() {
@@ -113,17 +50,11 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
 
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
-        getSensor();
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("LocalService", "Received start id " + startId + ": " + intent);
-
-
-
-
 
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
@@ -144,9 +75,6 @@ public class SampleAccelerometer extends Service implements SensorEventListener 
         return mBinder;
     }
 
-    public void setActive(boolean active){
-        mActive = active;
-    }
 
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
