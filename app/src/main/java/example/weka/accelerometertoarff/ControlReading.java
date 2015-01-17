@@ -1,15 +1,37 @@
 package example.weka.accelerometertoarff;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.UserHandle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.View;
 import android.view.MenuItem;
@@ -17,10 +39,21 @@ import android.widget.Button;
 import android.content.ServiceConnection;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.LinkedList;
 
 
-public class ControlReading extends ActionBarActivity implements SensorEventListener {
+public class ControlReading extends ActionBarActivity {
 
     private boolean mRecording;
 
@@ -28,7 +61,7 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
     private TextView mAccelText;
     private boolean mIsBound;
     private static final String TAG = "ControlReading";
-    private LinkedList<SensorEvent> mEvents;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,20 +75,78 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
 
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent event){
-        //mEvents.push(event);
-        if(!mRecording)
+    /* Checks if external storage is available for read and write */
+    private boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    public File getDocumentsDir(String dataDirName) {
+        // Get the directory for the user's public pictures directory.
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), dataDirName);
+        if(file.exists()) {
+            Log.e(TAG, "Directory exists");
+            return file;
+        }
+
+        if (!file.mkdirs()) {
+            Log.e(TAG, "Directory not created");
+        }
+        return file;
+    }
+
+    private void scanDataFile(File file) {
+        MediaScannerConnection.scanFile(this,
+                new String[]{file.toString()}, null,
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                        Log.i("ExternalStorage", "Scanned " + path + ":");
+                        Log.i("ExternalStorage", "-> uri=" + uri);
+                    }
+                });
+    }
+
+    private void writeHeader(){
+        if(!isExternalStorageWritable()){
+            Log.e(TAG, "External Storage unavailable");
             return;
+        }
 
-        mAccelText.setText("x: " + event.values[0] + " y: " + event.values[1] + " z: " + event.values[2]);
+        try {
+            FileWriter outputStream;
+            String testString = "HelloWorld";
+
+            File dir = getDocumentsDir("arff");
+            File file = new File(dir,"accel.arff");
+            if( file.exists() ){
+                Log.d(TAG, "accel exists");
+            }
+            else{
+                file.createNewFile();
+                Log.d(TAG, "accel created");
+            }
+            outputStream =  new FileWriter(file); //openFileOutput("accelARFF", Context.MODE_WORLD_READABLE);
+            if(outputStream == null)
+                throw new IOException("wtf");
+
+
+            outputStream.write(getString(R.string.arff_header));
+            Log.d(TAG, "writing:" + testString);
+            outputStream.close();
+            scanDataFile(file);
+            Toast.makeText(getBaseContext(),"file saved",
+                    Toast.LENGTH_SHORT).show();
+
+        }catch (Exception e){
+            Log.e(TAG, e.toString() );
+            return;
+        }
 
     }
-
-    public void onAccuracyChanged(Sensor sensor, int acc){
-
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -89,8 +180,10 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             return;
         }
 
-        if(mRecording)
+        if(mRecording) {
             mButton.setText("Start");
+            writeHeader();
+        }
         else
             mButton.setText("Stop");
 
@@ -98,7 +191,7 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
         mBoundService.setActive(mRecording);
     }
 
-    private SampleAccelerometer mBoundService;
+    private SampleBatteryService mBoundService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -107,13 +200,11 @@ public class ControlReading extends ActionBarActivity implements SensorEventList
             // interact with the service.  Because we have bound to a explicit
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((SampleAccelerometer.LocalBinder)service).getService();
+            mBoundService = ((SampleBatteryService.LocalBinder)service).getService();
 
             // Tell the user about this for our demo.
             Toast.makeText(ControlReading.this, R.string.local_service_connected,
                     Toast.LENGTH_SHORT).show();
-
-            mBoundService.registerAccelListener(ControlReading.this);
         }
 
         public void onServiceDisconnected(ComponentName className) {

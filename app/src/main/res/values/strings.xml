@@ -9,6 +9,7 @@
     <string name="local_service_label">accel</string>
     <string name="local_service_connected">connected</string>
     <string name="local_service_disconnected">disconnected</string>
+    <string name="arff_header">%Accelerator data from android device\n\n@RELATION battery\n\n@ATTRIBUTE x NUMERIC\n@ATTRIBUTE y NUMERIC\n@ATTRIBUTE z NUMERIC\n@ATTRIBUTE time NUMERIC\n\n@DATA\n</string>
 
 
 </resources>
