@@ -20,12 +20,6 @@
         </activity>
 
         <service
-            android:name=".SampleAccelerometer"
-            android:enabled="true"
-            android:exported="true" >
-        </service>
-
-        <service
             android:name=".SampleBatteryService"
             android:enabled="true"
             android:exported="true">
