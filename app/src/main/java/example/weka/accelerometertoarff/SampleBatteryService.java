@@ -23,7 +23,7 @@ public class SampleBatteryService extends Service{
     public SampleBatteryService() {
     }
 
-    private BatteryReceiver battReceiver;
+
     private static final String TAG = "BatterySampleService";
     private NotificationManager mNM;
 
