@@ -182,13 +182,15 @@ public class ControlReading extends ActionBarActivity {
 
         if(mRecording) {
             mButton.setText("Start");
-            writeHeader();
+            //writeHeader();
+            mBoundService.readBatt();
         }
         else
             mButton.setText("Stop");
 
         mRecording = !mRecording;
         mBoundService.setActive(mRecording);
+        mBoundService.readBatt();
     }
 
     private SampleBatteryService mBoundService;
@@ -225,7 +227,7 @@ public class ControlReading extends ActionBarActivity {
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
         bindService(new Intent(ControlReading.this,
-                SampleAccelerometer.class), mConnection, Context.BIND_AUTO_CREATE);
+                SampleBatteryService.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
 

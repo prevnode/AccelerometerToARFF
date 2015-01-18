@@ -7,10 +7,12 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -30,6 +32,32 @@ public class SampleBatteryService extends Service{
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
+
+    public void readBatt(){
+        // Register for the battery changed event
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+
+        // Intent is sticky so using null as receiver works fine
+// return value contains the status
+        Intent batteryStatus = this.registerReceiver(null, filter);
+
+// Are we charging / charged?
+        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                || status == BatteryManager.BATTERY_STATUS_FULL;
+
+        boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
+
+// How are we charging?
+        int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
+        boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+        Log.d(TAG,"charging: " + usbCharge + "/n");
+
+
+
+
+    }
 
     /**
      * Class for clients to access.  Because we know this service always

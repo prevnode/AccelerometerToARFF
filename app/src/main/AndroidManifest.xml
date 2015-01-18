@@ -25,6 +25,12 @@
             android:exported="true" >
         </service>
 
+        <service
+            android:name=".SampleBatteryService"
+            android:enabled="true"
+            android:exported="true">
+         </service>
+
         <receiver
             android:name=".BatteryReceiver"
             android:enabled="true"
