@@ -1,37 +1,15 @@
 package example.weka.accelerometertoarff;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.IntentSender;
-import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.UserHandle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
 import android.view.Menu;
 import android.view.View;
 import android.view.MenuItem;
@@ -40,17 +18,9 @@ import android.content.ServiceConnection;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.OutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.util.LinkedList;
 
 
 public class ControlReading extends ActionBarActivity {
@@ -193,7 +163,7 @@ public class ControlReading extends ActionBarActivity {
         mBoundService.readBatt();
     }
 
-    private SampleBatteryService mBoundService;
+    private DataCollectorService mBoundService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -202,7 +172,7 @@ public class ControlReading extends ActionBarActivity {
             // interact with the service.  Because we have bound to a explicit
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((SampleBatteryService.LocalBinder)service).getService();
+            mBoundService = ((DataCollectorService.LocalBinder)service).getService();
 
             // Tell the user about this for our demo.
             Toast.makeText(ControlReading.this, R.string.local_service_connected,
@@ -227,7 +197,7 @@ public class ControlReading extends ActionBarActivity {
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
         bindService(new Intent(ControlReading.this,
-                SampleBatteryService.class), mConnection, Context.BIND_AUTO_CREATE);
+                DataCollectorService.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
 

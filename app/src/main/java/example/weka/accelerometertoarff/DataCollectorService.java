@@ -8,10 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -19,13 +15,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 
-public class SampleBatteryService extends Service{
-    public SampleBatteryService() {
+public class DataCollectorService extends Service{
+    public DataCollectorService() {
     }
-
 
     private static final String TAG = "BatterySampleService";
     private NotificationManager mNM;
+    private MyReceiver mReceiver = new MyReceiver();
 
     private boolean mActive;
 
@@ -36,28 +32,30 @@ public class SampleBatteryService extends Service{
     public void readBatt(){
         // Register for the battery changed event
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        this.registerReceiver(mReceiver,filter);
 
+        /*
         // Intent is sticky so using null as receiver works fine
-// return value contains the status
+        // return value contains the status
         Intent batteryStatus = this.registerReceiver(null, filter);
 
-// Are we charging / charged?
+        // Are we charging / charged?
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL;
 
         boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
 
-// How are we charging?
+        // How are we charging?
         int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
         boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
         boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         Log.d(TAG,"charging: " + usbCharge + "/n");
-
-
-
-
+        */
     }
+
+
+
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -65,8 +63,8 @@ public class SampleBatteryService extends Service{
      * IPC.
      */
     public class LocalBinder extends Binder {
-        SampleBatteryService getService() {
-            return SampleBatteryService.this;
+        DataCollectorService getService() {
+            return DataCollectorService.this;
         }
     }
 
@@ -133,4 +131,20 @@ public class SampleBatteryService extends Service{
         // Send the notification.
         mNM.notify(NOTIFICATION, notification);
     }
+
+    class MyReceiver extends BroadcastReceiver{
+        int scale = -1;
+        int level = -1;
+        int voltage = -1;
+        int temp = -1;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
+            voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
+            Log.e("BatteryManager", "level is "+level+"/"+scale+", temp is "+temp+", voltage is "+voltage);
+        }
+
+    };
 }
